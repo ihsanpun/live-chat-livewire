@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Livewire\Component;
 
 class Chat extends Component
@@ -13,10 +14,13 @@ class Chat extends Component
     public function render()
     {
         return view('livewire.chat', [
-            'messages' => Message::where('from_user_id', auth()->id())
-                ->orWhere('from_user_id', $this->user->id)
-                ->orWhere('to_user_id', auth()->id())
-                ->orWhere('to_user_id', $this->user->id)
+            'messages' => Message::where(function (Builder $query) {
+                $query->where('from_user_id', auth()->id())
+                    ->where('to_user_id', $this->user->id);
+            })->orwhere(function (Builder $query) {
+                $query->where('from_user_id', $this->user->id)
+                    ->where('to_user_id', auth()->id());
+            })
                 ->get(),
         ]);
     }
